@@ -22,9 +22,12 @@ jobs:
           cp -r Dashboard-Editor--main/* app/build/
           cd app
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets
           npx cap init DashboardEditor io.ionic.DashboardEditor --web-dir build
           npx cap add android
+          mkdir -p assets/icons
+          cp ../Dashboard-Editor--main/icon.png assets/icons/icon.png
+          npx capacitor-assets generate --android
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
