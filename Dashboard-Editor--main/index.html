@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0c10">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nexus Dashboard">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png">
+<title>Nexus Studio — لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cairo:wght@400;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ═══ VARS — match Nexus site palette ═══ */
+:root{
+  --bg:#0a0c10; --bg2:#0f1218; --bg3:#141820;
+  --card:#141820; --card2:#1a2030; --card3:#1f2638;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.12);
+  --text:#e4e6ef; --text2:#6b7385; --text3:#2e3446;
+  --accent:#00d4cc; --accent2:#00aaa4;
+  --glow:rgba(0,212,204,.22); --glow2:rgba(0,212,204,.08);
+  --rose:#f43f5e; --rose-dim:rgba(244,63,94,.1);
+  --amber:#f59e0b; --amb-dim:rgba(245,158,11,.1);
+  --emerald:#10b981; --em-dim:rgba(16,185,129,.1);
+  --indigo:#6366f1;
+  --g-accent:linear-gradient(135deg,#00d4cc,#0099c8);
+  --g-rose:linear-gradient(135deg,#f43f5e,#e11d48);
+  --r:14px; --r-sm:10px; --r-full:999px;
+  --nav:56px; --tab:56px; --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+  --t:.2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Cairo','Plus Jakarta Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;
+  position:fixed;inset:0;
+}
+
+/* ══ LOGIN ══ */
+#login-screen{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem;gap:1.2rem;
+  transition:opacity .4s,visibility .4s;
+}
+#login-screen.gone{opacity:0;visibility:hidden;pointer-events:none}
+.login-logo{
+  width:72px;height:72px;border-radius:20px;
+  background:var(--g-accent);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px var(--glow);
+}
+.login-logo svg{width:36px;height:36px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.login-title{font-size:1.3rem;font-weight:900;text-align:center}
+.login-sub{font-size:.78rem;color:var(--text2);text-align:center;margin-top:-.6rem}
+.login-card{
+  width:100%;max-width:360px;
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:20px;padding:1.6rem;
+  display:flex;flex-direction:column;gap:.9rem;
+}
+.lf{display:flex;flex-direction:column;gap:.35rem}
+.lf label{font-size:.72rem;font-weight:700;color:var(--text2);letter-spacing:.08em;text-transform:uppercase}
+.lf input{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r-sm);padding:.7rem 1rem;
+  color:var(--text);font-family:'Cairo',sans-serif;font-size:.9rem;
+  transition:border var(--t);text-align:center;direction:ltr;width:100%;
+}
+.lf input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow2)}
+.login-btn{
+  height:46px;background:var(--g-accent);border:none;border-radius:var(--r-full);
+  color:#fff;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:800;
+  cursor:pointer;transition:opacity var(--t),transform var(--t);
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.login-btn:active{opacity:.85;transform:scale(.98)}
+.login-err{font-size:.75rem;color:var(--rose);text-align:center;display:none}
+.login-err.show{display:block}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  height:calc(var(--nav) + var(--safe-t));
+  padding-top:var(--safe-t);
+  background:rgba(10,12,16,.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  flex-shrink:0;z-index:50;position:relative;
+}
+.topbar-inner{
+  height:var(--nav);
+  display:flex;align-items:center;padding:0 14px;gap:10px;
+}
+.brand{display:flex;align-items:center;gap:10px;flex:1}
+.brand-dot{
+  width:32px;height:32px;border-radius:10px;
+  background:var(--g-accent);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 14px var(--glow);
+}
+.brand-dot svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.brand-name{font-size:14px;font-weight:800;letter-spacing:-.3px}
+.brand-name span{color:var(--accent)}
+.brand-badge{font-size:9px;color:var(--text2);font-family:'Fira Code',monospace;letter-spacing:1.5px;margin-top:1px}
+.tb-btn{
+  width:32px;height:32px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--card2);
+  color:var(--text2);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;transition:var(--t);
+}
+.tb-btn:active{transform:scale(.92)}
+.tb-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══ APP SHELL ══ */
+.shell{flex:1;overflow:hidden;position:relative}
+.page{
+  position:absolute;inset:0;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:16px 14px calc(var(--tab) + var(--safe-b) + 24px);
+  display:none;
+}
+.page.active{display:block}
+.page::-webkit-scrollbar{width:2px}
+.page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ══ TABBAR ══ */
+.tabbar{
+  height:calc(var(--tab) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  background:rgba(10,12,16,.97);
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  flex-shrink:0;z-index:50;position:relative;
+}
+.tabbar-inner{height:var(--tab);display:flex;align-items:center;padding:0 6px}
+.tab{
+  flex:1;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;
+  color:var(--text3);font-size:9px;font-weight:600;letter-spacing:.3px;
+  transition:var(--t);
+}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:all .25s}
+.tab.active{color:var(--accent)}
+.tab.active svg{filter:drop-shadow(0 0 5px var(--glow));transform:translateY(-2px) scale(1.1)}
+
+/* ══ SECTION HEADER ══ */
+.sec-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:8px}
+.sec-hdr-left .sec-title{font-size:15px;font-weight:800}
+.sec-hdr-left .sec-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.add-btn{
+  height:32px;padding:0 12px;
+  background:var(--g-accent);border:none;border-radius:var(--r-full);
+  color:#fff;font-family:'Cairo',sans-serif;font-size:11px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;
+  flex-shrink:0;
+}
+.add-btn svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.add-btn:active{opacity:.85;transform:scale(.96)}
+
+/* ══ CARDS ══ */
+.item-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px;margin-bottom:10px;
+  display:flex;gap:11px;align-items:flex-start;
+  position:relative;overflow:hidden;
+  border-right:2px solid var(--accent);
+}
+.item-thumb{
+  width:58px;height:58px;border-radius:10px;flex-shrink:0;
+  background:var(--card2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;overflow:hidden;
+}
+.item-thumb img{width:100%;height:100%;object-fit:cover}
+.item-body{flex:1;min-width:0}
+.item-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-desc{font-size:11px;color:var(--text2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.item-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.itag{
+  background:rgba(0,212,204,.08);border:1px solid rgba(0,212,204,.2);
+  color:var(--accent);padding:1px 7px;border-radius:var(--r-full);
+  font-size:9px;font-weight:700;letter-spacing:.03em;
+}
+.item-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.ilink{font-size:10px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:3px}
+.ilink svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.item-actions{display:flex;gap:6px;margin-top:8px}
+.act{
+  height:26px;padding:0 10px;border-radius:var(--r-full);border:none;
+  font-family:'Cairo',sans-serif;font-size:10px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:4px;transition:var(--t);
+}
+.act svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.act.edit{background:rgba(0,212,204,.1);border:1px solid rgba(0,212,204,.2);color:var(--accent)}
+.act.del{background:var(--rose-dim);border:1px solid rgba(244,63,94,.2);color:#fda4af}
+.act:active{transform:scale(.94)}
+
+/* message card */
+.msg-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;margin-bottom:10px;
+  border-right:2px solid var(--indigo);
+}
+.msg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.msg-name{font-size:13px;font-weight:800}
+.msg-email{font-size:10px;color:var(--text2);margin-top:1px}
+.msg-time{font-size:10px;color:var(--text2);white-space:nowrap}
+.msg-type{font-size:10px;color:var(--accent);background:var(--glow2);border:1px solid rgba(0,212,204,.2);padding:2px 8px;border-radius:var(--r-full);margin-bottom:6px;display:inline-block}
+.msg-budget{font-size:10px;color:var(--amber);margin-bottom:6px}
+.msg-text{font-size:12px;color:var(--text2);line-height:1.55}
+.msg-del{margin-top:8px;height:26px;padding:0 10px;border-radius:var(--r-full);border:none;background:var(--rose-dim);border:1px solid rgba(244,63,94,.2);color:#fda4af;font-family:'Cairo',sans-serif;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px}
+.msg-del svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* settings */
+.settings-block{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.settings-block-title{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.settings-block-title svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sf{display:flex;flex-direction:column;gap:.35rem;margin-bottom:10px}
+.sf label{font-size:.7rem;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase}
+.sf input,.sf textarea,.sf select{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r-sm);padding:.6rem .85rem;
+  color:var(--text);font-family:'Cairo',sans-serif;font-size:.85rem;
+  transition:border var(--t);width:100%;
+}
+.sf input:focus,.sf textarea:focus,.sf select:focus{outline:none;border-color:var(--accent)}
+.sf textarea{resize:vertical;min-height:70px;direction:rtl}
+.sf-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.save-btn{
+  width:100%;height:40px;background:var(--g-accent);border:none;
+  border-radius:var(--r-full);color:#fff;font-family:'Cairo',sans-serif;
+  font-size:.88rem;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  transition:opacity var(--t);
+}
+.save-btn:active{opacity:.85}
+.save-btn svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-edit{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px}
+.stat-edit label{font-size:9px;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:4px}
+.stat-edit input{background:transparent;border:none;color:var(--text);font-family:'Cairo',sans-serif;font-size:1.2rem;font-weight:900;width:100%;padding:0}
+.stat-edit input:focus{outline:none}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* ══ MODAL ══ */
+.overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.78);backdrop-filter:blur(8px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;
+}
+.overlay.open{opacity:1;visibility:visible}
+.modal{
+  width:100%;max-width:500px;
+  background:var(--bg2);
+  border-radius:22px 22px 0 0;
+  padding:0 0 calc(env(safe-area-inset-bottom,0px) + 12px);
+  max-height:92vh;overflow-y:auto;
+  transform:translateY(40px);transition:transform .3s;
+}
+.overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:34px;height:3px;border-radius:2px;background:var(--border2);margin:10px auto 0}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 0}
+.modal-title{font-size:14px;font-weight:800}
+.modal-x{
+  width:28px;height:28px;border-radius:50%;background:var(--card);border:none;
+  color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.modal-x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.modal-body{padding:14px 18px}
+.mf{display:flex;flex-direction:column;gap:.35rem;margin-bottom:10px}
+.mf label{font-size:.7rem;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase}
+.mf input,.mf textarea,.mf select{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:var(--r-sm);padding:.62rem .9rem;
+  color:var(--text);font-family:'Cairo',sans-serif;font-size:.85rem;
+  transition:border var(--t);width:100%;
+}
+.mf input:focus,.mf textarea:focus,.mf select:focus{outline:none;border-color:var(--accent)}
+.mf textarea{resize:vertical;min-height:75px;direction:rtl}
+.mf-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt-label{font-size:9px;color:var(--text3);margin-right:3px}
+.upload-zone{
+  border:1.5px dashed var(--border2);border-radius:var(--r);
+  padding:1.1rem;text-align:center;cursor:pointer;
+  background:var(--card);transition:border var(--t);
+}
+.upload-zone:hover{border-color:var(--accent)}
+.upload-zone input{display:none}
+.upload-zone svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:5px}
+.upload-zone p{font-size:.75rem;color:var(--text2)}
+.up-preview{width:100%;height:110px;object-fit:cover;border-radius:var(--r-sm);margin-top:8px;display:none}
+.modal-footer{display:flex;gap:8px;padding:4px 18px 8px}
+.m-btn{
+  flex:1;height:42px;border-radius:var(--r-full);
+  font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;
+  cursor:pointer;transition:var(--t);
+}
+.m-btn.primary{background:var(--g-accent);border:none;color:#fff}
+.m-btn.cancel{background:var(--card);border:1px solid var(--border2);color:var(--text2)}
+.m-btn:active{transform:scale(.97);opacity:.9}
+
+/* ══ EMPTY ══ */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text2)}
+.empty svg{width:40px;height:40px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:.75rem}
+
+/* ══ SPINNER ══ */
+.spin{width:20px;height:20px;border:2px solid var(--border2);border-top:2px solid var(--accent);border-radius:50%;animation:rotate .7s linear infinite;margin:2rem auto;display:block}
+@keyframes rotate{to{transform:rotate(360deg)}}
+
+/* ══ TOAST ══ */
+.toast{
+  position:fixed;
+  bottom:calc(var(--tab) + var(--safe-b) + 10px);
+  left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--card2);border:1px solid var(--border2);
+  color:var(--text);padding:.55rem 1.1rem;border-radius:var(--r-full);
+  font-size:11px;font-weight:700;z-index:300;
+  opacity:0;transition:all .3s;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toast.ok svg{stroke:var(--emerald)}
+.toast.err svg{stroke:var(--rose)}
+
+/* ══ BADGE ══ */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:var(--r-full);font-size:9px;font-weight:700}
+.badge.new{background:var(--em-dim);border:1px solid rgba(16,185,129,.2);color:var(--emerald)}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--rose);display:inline-block;margin-right:2px}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-logo">
+    <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+  </div>
+  <div>
+    <div class="login-title">Nexus Studio</div>
+    <div class="login-sub">لوحة التحكم — Mohamed Ghanem</div>
+  </div>
+  <div class="login-card">
+    <div class="lf">
+      <label>كلمة المرور</label>
+      <input type="password" id="pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="login-err">❌ كلمة المرور خاطئة</div>
+    <button class="login-btn" onclick="doLogin()">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      دخول
+    </button>
+  </div>
+</div>
+
+<!-- ══ TOPBAR ══ -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-dot">
+        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Nexus<span>studio</span></div>
+        <div class="brand-badge">DASHBOARD · CONTROL</div>
+      </div>
+    </div>
+    <button class="tb-btn" onclick="doLogout()" title="خروج">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══ PAGES ══ -->
+<div class="shell">
+
+  <!-- WORKS -->
+  <div class="page active" id="page-works">
+    <div class="sec-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-title">الأعمال</div>
+        <div class="sec-sub" id="works-count">...</div>
+      </div>
+      <button class="add-btn" onclick="openModal('work')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة عمل
+      </button>
+    </div>
+    <div id="works-list"><div class="spin"></div></div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="page" id="page-services">
+    <div class="sec-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-title">الخدمات</div>
+        <div class="sec-sub" id="svcs-count">...</div>
+      </div>
+      <button class="add-btn" onclick="openModal('service')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة خدمة
+      </button>
+    </div>
+    <div id="svcs-list"><div class="spin"></div></div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div class="page" id="page-reviews">
+    <div class="sec-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-title">التقييمات</div>
+        <div class="sec-sub" id="revs-count">...</div>
+      </div>
+      <button class="add-btn" onclick="openModal('review')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        إضافة
+      </button>
+    </div>
+    <div id="revs-list"><div class="spin"></div></div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="page" id="page-msgs">
+    <div class="sec-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-title">الرسائل</div>
+        <div class="sec-sub" id="msgs-count">...</div>
+      </div>
+    </div>
+    <div id="msgs-list"><div class="spin"></div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="sec-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-title">الإعدادات</div>
+        <div class="sec-sub">معلومات الموقع والتواصل</div>
+      </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="settings-block">
+      <div class="settings-block-title">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        بيانات التواصل
+      </div>
+      <div class="sf"><label>الاسم</label><input type="text" id="s-name" value="Mohamed Ghanem"></div>
+      <div class="sf"><label>البريد الإلكتروني</label><input type="email" id="s-email" value="mohamedghanemfs99@gmail.com"></div>
+      <div class="sf"><label>رقم الهاتف</label><input type="tel" id="s-phone" value="+20 1095097334" dir="ltr"></div>
+      <div class="sf"><label>الموقع / المنطقة</label><input type="text" id="s-location" value="كفر الشيخ، مصر"></div>
+      <div class="sf"><label>رابط واتساب</label><input type="url" id="s-wa" value="https://wa.me/201095097334" dir="ltr"></div>
+      <button class="save-btn" onclick="saveContact()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ بيانات التواصل
+      </button>
+    </div>
+
+    <!-- Hero Texts -->
+    <div class="settings-block">
+      <div class="settings-block-title">
+        <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        نصوص الهيرو
+      </div>
+      <div class="sf"><label>العنوان الرئيسي (EN)</label><input type="text" id="s-hero-en" placeholder="Crafting cinematic stories" dir="ltr"></div>
+      <div class="sf"><label>العنوان الرئيسي (AR)</label><input type="text" id="s-hero-ar" placeholder="نصنع لحظات سينمائية"></div>
+      <div class="sf"><label>الوصف (EN)</label><textarea id="s-desc-en" rows="2" dir="ltr" placeholder="Professional video editor..."></textarea></div>
+      <div class="sf"><label>الوصف (AR)</label><textarea id="s-desc-ar" rows="2" placeholder="مونتير محترف..."></textarea></div>
+      <button class="save-btn" onclick="saveHeroTexts()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ النصوص
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="settings-block">
+      <div class="settings-block-title">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        الأرقام والإحصائيات
+      </div>
+      <div class="stats-grid">
+        <div class="stat-edit"><label>عدد المشاريع</label><input type="number" id="st-projects" placeholder="220"></div>
+        <div class="stat-edit"><label>عدد العملاء</label><input type="number" id="st-clients" placeholder="70"></div>
+        <div class="stat-edit"><label>سنوات الخبرة</label><input type="number" id="st-years" placeholder="4"></div>
+        <div class="stat-edit"><label>التقييم</label><input type="number" id="st-rating" step="0.1" placeholder="4.9"></div>
+      </div>
+      <button class="save-btn" onclick="saveStats()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ الأرقام
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Password -->
+    <div class="settings-block">
+      <div class="settings-block-title">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        كلمة المرور
+      </div>
+      <div class="sf"><label>كلمة المرور الجديدة</label><input type="password" id="new-pw1" placeholder="أدخل كلمة مرور جديدة"></div>
+      <div class="sf"><label>تأكيد كلمة المرور</label><input type="password" id="new-pw2" placeholder="أعد الإدخال"></div>
+      <button class="save-btn" style="background:var(--g-rose)" onclick="changePw()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        تغيير كلمة المرور
+      </button>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<!-- ══ TABBAR ══ -->
+<div class="tabbar">
+  <div class="tabbar-inner">
+    <div class="tab active" onclick="goTab('works',this)">
+      <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      الأعمال
+    </div>
+    <div class="tab" onclick="goTab('services',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      الخدمات
+    </div>
+    <div class="tab" onclick="goTab('reviews',this)">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      التقييمات
+    </div>
+    <div class="tab" onclick="goTab('msgs',this)" id="tab-msgs">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      الرسائل
+    </div>
+    <div class="tab" onclick="goTab('settings',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      الإعدادات
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ══ -->
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">إضافة</div>
+      <button class="modal-x" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="m-btn cancel" onclick="closeModal()">إلغاء</button>
+      <button class="m-btn primary" id="modal-save" onclick="saveModal()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" id="toast-icon"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- ══ FIREBASE ══ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc,
+  doc, serverTimestamp, query, orderBy, setDoc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const FB = {
+  apiKey:"AIzaSyCvdDxIGIqt4zelxEGDsiLFLTzTOKVCyR8",
+  authDomain:"myportfolioproject-db58e.firebaseapp.com",
+  projectId:"myportfolioproject-db58e",
+  storageBucket:"myportfolioproject-db58e.firebasestorage.app",
+  messagingSenderId:"1062532172488",
+  appId:"1:1062532172488:web:975cf26e2b599c25d1b3fd"
+};
+const fbApp = initializeApp(FB);
+const db = getFirestore(fbApp);
+const storage = getStorage(fbApp);
+
+/* ══ AUTH ══ */
+const DEFAULT_PW = 'nexus@2025!';
+const getPW = () => localStorage.getItem('nx_pw') || DEFAULT_PW;
+
+window.doLogin = () => {
+  const val = document.getElementById('pw').value;
+  if (val === getPW()) {
+    document.getElementById('login-screen').classList.add('gone');
+    loadAll();
+  } else {
+    const el = document.getElementById('login-err');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+};
+window.doLogout = () => {
+  document.getElementById('login-screen').classList.remove('gone');
+  document.getElementById('pw').value = '';
+};
+window.changePw = () => {
+  const p1 = document.getElementById('new-pw1').value.trim();
+  const p2 = document.getElementById('new-pw2').value.trim();
+  if (!p1) { toast('أدخل كلمة المرور','err'); return; }
+  if (p1 !== p2) { toast('كلمتا المرور غير متطابقتين','err'); return; }
+  localStorage.setItem('nx_pw', p1);
+  document.getElementById('new-pw1').value = '';
+  document.getElementById('new-pw2').value = '';
+  toast('✅ تم تغيير كلمة المرور');
+};
+
+/* ══ TABS ══ */
+window.goTab = (tab, el) => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+};
+
+/* ══ TOAST ══ */
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  const ic = document.getElementById('toast-icon');
+  t.className = 'toast ' + type;
+  ic.innerHTML = type === 'ok'
+    ? '<polyline points="20 6 9 17 4 12"/>'
+    : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+window.toast = toast;
+
+/* ══ LOAD ALL ══ */
+async function loadAll() {
+  await Promise.all([loadWorks(), loadServices(), loadReviews(), loadMessages(), loadSettings()]);
+}
+
+/* ══ WORKS ══ */
+let worksCache = [];
+async function loadWorks() {
+  const el = document.getElementById('works-list');
+  el.innerHTML = '<div class="spin"></div>';
+  try {
+    const q = query(collection(db, 'works'), orderBy('createdAt','desc'));
+    worksCache = (await getDocs(q)).docs.map(d => ({id:d.id,...d.data()}));
+    renderWorks();
+  } catch(e) { el.innerHTML = emptyState('خطأ في التحميل'); }
+}
+function renderWorks() {
+  const el = document.getElementById('works-list');
+  document.getElementById('works-count').textContent = worksCache.length + ' عمل';
+  if (!worksCache.length) { el.innerHTML = emptyState('لا توجد أعمال — أضف أول عمل!', 'film'); return; }
+  el.innerHTML = worksCache.map(w => `
+    <div class="item-card">
+      <div class="item-thumb">
+        ${w.thumbUrl ? `<img src="${w.thumbUrl}" alt="${w.title}">` : '🎬'}
+      </div>
+      <div class="item-body">
+        <div class="item-name">${w.title}</div>
+        <div class="item-desc">${w.description||''}</div>
+        <div class="item-tags">
+          <span class="itag">${w.category||'videos'}</span>
+          ${w.platform?`<span class="itag">${w.platform}</span>`:''}
+        </div>
+        <div class="item-links">
+          ${w.videoUrl?`<a href="${w.videoUrl}" target="_blank" class="ilink"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> مشاهدة</a>`:''}
+          ${w.vimeoId?`<a href="https://vimeo.com/${w.vimeoId}" target="_blank" class="ilink"><svg viewBox="0 0 24 24"><path d="M22 7c-.1 3.2-2.3 7.6-6.7 13.1C10.9 25.7 7.3 28 4.4 28c-1.7 0-3.2-1.6-4.4-4.8L-2.8 14c-.9-3.2-.2-4.8 2-4.8 1 0 2.4.8 4.3 2.5 1.9 2.1 3 4 3.3 5.8l2.2-3.5c2-3.2 3.1-5.1 3.1-5.7 0-1.5-.8-2.2-2.4-2.2C8.6 6.1 7 7 5.3 9c2.2-7.3 6.4-10.8 12.6-10.5C21.3-1.3 22.1 1.9 22 7z"/></svg> Vimeo</a>`:''}
+        </div>
+        <div class="item-actions">
+          <button class="act edit" onclick="openModal('work','${w.id}')">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            تعديل
+          </button>
+          <button class="act del" onclick="delItem('works','${w.id}','work')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            حذف
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══ SERVICES ══ */
+let svcsCache = [];
+async function loadServices() {
+  const el = document.getElementById('svcs-list');
+  el.innerHTML = '<div class="spin"></div>';
+  try {
+    const q = query(collection(db,'services'), orderBy('createdAt','desc'));
+    svcsCache = (await getDocs(q)).docs.map(d => ({id:d.id,...d.data()}));
+    renderServices();
+  } catch(e) { el.innerHTML = emptyState('خطأ في التحميل'); }
+}
+function renderServices() {
+  const el = document.getElementById('svcs-list');
+  document.getElementById('svcs-count').textContent = svcsCache.length + ' خدمة';
+  if (!svcsCache.length) { el.innerHTML = emptyState('لا توجد خدمات — أضف أول خدمة!', 'zap'); return; }
+  el.innerHTML = svcsCache.map(s => `
+    <div class="item-card">
+      <div class="item-thumb" style="font-size:1.6rem">${s.icon||'⚡'}</div>
+      <div class="item-body">
+        <div class="item-name">${s.title}</div>
+        <div class="item-desc">${s.description||''}</div>
+        <div class="item-tags">${(s.tags||[]).map(t=>`<span class="itag">${t}</span>`).join('')}</div>
+        <div class="item-actions">
+          <button class="act edit" onclick="openModal('service','${s.id}')">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            تعديل
+          </button>
+          <button class="act del" onclick="delItem('services','${s.id}','service')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            حذف
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══ REVIEWS ══ */
+let revsCache = [];
+async function loadReviews() {
+  const el = document.getElementById('revs-list');
+  el.innerHTML = '<div class="spin"></div>';
+  try {
+    const q = query(collection(db,'reviews'), orderBy('createdAt','desc'));
+    revsCache = (await getDocs(q)).docs.map(d => ({id:d.id,...d.data()}));
+    renderReviews();
+  } catch(e) { el.innerHTML = emptyState('خطأ في التحميل'); }
+}
+function renderReviews() {
+  const el = document.getElementById('revs-list');
+  document.getElementById('revs-count').textContent = revsCache.length + ' تقييم';
+  if (!revsCache.length) { el.innerHTML = emptyState('لا توجد تقييمات — أضف أول تقييم!', 'star'); return; }
+  el.innerHTML = revsCache.map(r => `
+    <div class="item-card">
+      <div class="item-thumb" style="background:var(--glow2);font-size:1rem;color:var(--accent);font-weight:900">${(r.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      <div class="item-body">
+        <div class="item-name">${r.name} ${'★'.repeat(r.rating||5)}</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:1px">${r.role||''}</div>
+        <div class="item-desc" style="margin-top:5px">"${r.text||''}"</div>
+        <div class="item-actions">
+          <button class="act edit" onclick="openModal('review','${r.id}')">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            تعديل
+          </button>
+          <button class="act del" onclick="delItem('reviews','${r.id}','review')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            حذف
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══ MESSAGES ══ */
+let msgsCache = [];
+async function loadMessages() {
+  const el = document.getElementById('msgs-list');
+  el.innerHTML = '<div class="spin"></div>';
+  try {
+    const q = query(collection(db,'messages'), orderBy('createdAt','desc'));
+    msgsCache = (await getDocs(q)).docs.map(d => ({id:d.id,...d.data()}));
+    renderMessages();
+  } catch(e) { el.innerHTML = emptyState('خطأ في التحميل'); }
+}
+function renderMessages() {
+  const el = document.getElementById('msgs-list');
+  const unread = msgsCache.filter(m => !m.read).length;
+  document.getElementById('msgs-count').textContent = msgsCache.length + ' رسالة' + (unread ? ` — ${unread} جديدة` : '');
+  if (!msgsCache.length) { el.innerHTML = emptyState('لا توجد رسائل بعد', 'message-square'); return; }
+  el.innerHTML = msgsCache.map(m => {
+    const d = m.createdAt?.toDate ? m.createdAt.toDate() : new Date();
+    const timeStr = d.toLocaleDateString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div class="msg-card">
+      <div class="msg-top">
+        <div>
+          <div class="msg-name">${m.name||'—'} ${!m.read?'<span class="unread-dot"></span>':''}</div>
+          <div class="msg-email">${m.email||''}</div>
+        </div>
+        <div class="msg-time">${timeStr}</div>
+      </div>
+      ${m.type?`<div class="msg-type">${m.type}</div>`:''}
+      ${m.budget?`<div class="msg-budget">💰 ${m.budget}</div>`:''}
+      <div class="msg-text">${m.message||''}</div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        ${m.email?`<a href="mailto:${m.email}" class="act edit" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          رد بالإيميل
+        </a>`:''}
+        <button class="msg-del" onclick="delItem('messages','${m.id}','msg')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+          حذف
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  // Mark all as read
+  msgsCache.filter(m=>!m.read).forEach(m => {
+    updateDoc(doc(db,'messages',m.id),{read:true}).catch(()=>{});
+  });
+}
+
+/* ══ SETTINGS LOAD ══ */
+let settingsDocId = null;
+let statsDocId = null;
+async function loadSettings() {
+  try {
+    const snap = await getDocs(collection(db,'siteSettings'));
+    if (!snap.empty) {
+      settingsDocId = snap.docs[0].id;
+      const d = snap.docs[0].data();
+      document.getElementById('s-name').value = d.name||'Mohamed Ghanem';
+      document.getElementById('s-email').value = d.email||'mohamedghanemfs99@gmail.com';
+      document.getElementById('s-phone').value = d.phone||'+20 1095097334';
+      document.getElementById('s-location').value = d.location||'كفر الشيخ، مصر';
+      document.getElementById('s-wa').value = d.whatsapp||'https://wa.me/201095097334';
+      document.getElementById('s-hero-en').value = d.heroEn||'';
+      document.getElementById('s-hero-ar').value = d.heroAr||'';
+      document.getElementById('s-desc-en').value = d.descEn||'';
+      document.getElementById('s-desc-ar').value = d.descAr||'';
+    }
+    const sSnap = await getDocs(collection(db,'siteStats'));
+    if (!sSnap.empty) {
+      statsDocId = sSnap.docs[0].id;
+      const d = sSnap.docs[0].data();
+      document.getElementById('st-projects').value = d.projects||'';
+      document.getElementById('st-clients').value = d.clients||'';
+      document.getElementById('st-years').value = d.years||'';
+      document.getElementById('st-rating').value = d.rating||'';
+    }
+  } catch(e){}
+}
+
+window.saveContact = async () => {
+  const data = {
+    name: document.getElementById('s-name').value.trim(),
+    email: document.getElementById('s-email').value.trim(),
+    phone: document.getElementById('s-phone').value.trim(),
+    location: document.getElementById('s-location').value.trim(),
+    whatsapp: document.getElementById('s-wa').value.trim(),
+    heroEn: document.getElementById('s-hero-en').value.trim(),
+    heroAr: document.getElementById('s-hero-ar').value.trim(),
+    descEn: document.getElementById('s-desc-en').value.trim(),
+    descAr: document.getElementById('s-desc-ar').value.trim(),
+    updatedAt: serverTimestamp(),
+  };
+  try {
+    if (settingsDocId) await updateDoc(doc(db,'siteSettings',settingsDocId), data);
+    else { const r = await addDoc(collection(db,'siteSettings'),{...data,createdAt:serverTimestamp()}); settingsDocId=r.id; }
+    toast('✅ تم حفظ بيانات التواصل');
+  } catch(e) { toast('❌ خطأ في الحفظ','err'); }
+};
+
+window.saveHeroTexts = window.saveContact;
+
+window.saveStats = async () => {
+  const data = {
+    projects: +document.getElementById('st-projects').value||0,
+    clients: +document.getElementById('st-clients').value||0,
+    years: +document.getElementById('st-years').value||0,
+    rating: +document.getElementById('st-rating').value||4.9,
+    updatedAt: serverTimestamp(),
+  };
+  try {
+    if (statsDocId) await updateDoc(doc(db,'siteStats',statsDocId), data);
+    else { const r = await addDoc(collection(db,'siteStats'),{...data,createdAt:serverTimestamp()}); statsDocId=r.id; }
+    toast('✅ تم حفظ الأرقام');
+  } catch(e) { toast('❌ خطأ في الحفظ','err'); }
+};
+
+/* ══ DELETE ══ */
+window.delItem = async (col, id, type) => {
+  if (!confirm('هل أنت متأكد من الحذف؟')) return;
+  try {
+    await deleteDoc(doc(db, col, id));
+    toast('✅ تم الحذف');
+    if (type==='work') await loadWorks();
+    else if (type==='service') await loadServices();
+    else if (type==='review') await loadReviews();
+    else if (type==='msg') await loadMessages();
+  } catch(e) { toast('❌ خطأ في الحذف','err'); }
+};
+
+/* ══ MODAL ══ */
+let _mType = null, _mId = null, _uploadedUrl = null;
+
+window.openModal = async (type, id=null) => {
+  _mType = type; _mId = id; _uploadedUrl = null;
+  let existing = null;
+  if (id) {
+    if (type==='work') existing = worksCache.find(w=>w.id===id);
+    if (type==='service') existing = svcsCache.find(s=>s.id===id);
+    if (type==='review') existing = revsCache.find(r=>r.id===id);
+  }
+  const titles = {work:'عمل',service:'خدمة',review:'تقييم'};
+  document.getElementById('modal-title').textContent = (id?'تعديل ':'إضافة ') + (titles[type]||'');
+  const body = document.getElementById('modal-body');
+  if (type==='work') body.innerHTML = workForm(existing);
+  else if (type==='service') body.innerHTML = serviceForm(existing);
+  else if (type==='review') body.innerHTML = reviewForm(existing);
+  // upload handler
+  const uz = body.querySelector('.upload-zone');
+  const fi = body.querySelector('#mf-file');
+  const pv = body.querySelector('#mf-preview');
+  if (uz && fi) {
+    uz.addEventListener('click', ()=>fi.click());
+    fi.addEventListener('change', async () => {
+      const file = fi.files[0]; if (!file) return;
+      uz.innerHTML = '<div class="spin"></div>';
+      try {
+        const ref = storageRef(storage, `media/${Date.now()}_${file.name}`);
+        await uploadBytes(ref, file);
+        _uploadedUrl = await getDownloadURL(ref);
+        if (pv) { pv.src=_uploadedUrl; pv.style.display='block'; }
+        uz.innerHTML = `<div style="color:var(--emerald);font-size:.8rem;padding:.5rem">✅ تم الرفع</div>`;
+        toast('✅ تم رفع الملف');
+      } catch(e) { uz.innerHTML='❌ فشل الرفع'; toast('❌ فشل الرفع','err'); }
+    });
+  }
+  document.getElementById('overlay').classList.add('open');
+  lucide.createIcons();
+};
+
+function workForm(d) {
+  return `
+    <div class="mf"><label>عنوان العمل *</label><input id="mf-title" value="${d?.title||''}" placeholder="عنوان الفيديو"></div>
+    <div class="mf"><label>الوصف</label><textarea id="mf-desc">${d?.description||''}</textarea></div>
+    <div class="mf-row">
+      <div class="mf"><label>التصنيف</label>
+        <select id="mf-cat">
+          ${['videos','reels','social','docs'].map(c=>`<option value="${c}" ${d?.category===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="mf"><label>المنصة</label>
+        <select id="mf-platform">
+          ${['Vimeo','YouTube','Instagram','TikTok','Other'].map(p=>`<option value="${p}" ${d?.platform===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="mf"><label>رابط الفيديو (YouTube/Vimeo/...)</label><input id="mf-video" type="url" dir="ltr" value="${d?.videoUrl||''}" placeholder="https://vimeo.com/..."></div>
+    <div class="mf"><label>Vimeo Video ID <span class="opt-label">(اختياري — للـ embed)</span></label><input id="mf-vimeo" dir="ltr" value="${d?.vimeoId||''}" placeholder="1175147593"></div>
+    <div class="mf">
+      <label>صورة مصغرة (Thumbnail)</label>
+      <div class="upload-zone">
+        <input type="file" id="mf-file" accept="image/*,video/*">
+        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        <p>اضغط لرفع صورة</p>
+      </div>
+      ${d?.thumbUrl?`<img src="${d.thumbUrl}" id="mf-preview" class="up-preview" style="display:block">`:
+        `<img id="mf-preview" class="up-preview">`}
+    </div>
+    <div class="mf"><label>أو رابط صورة مباشر</label><input id="mf-thumb-url" type="url" dir="ltr" value="${d?.thumbUrl||''}" placeholder="https://..."></div>
+  `;
+}
+
+function serviceForm(d) {
+  return `
+    <div class="mf"><label>عنوان الخدمة (EN) *</label><input id="mf-title-en" dir="ltr" value="${d?.titleEn||d?.title||''}" placeholder="Social Media Reels"></div>
+    <div class="mf"><label>عنوان الخدمة (AR)</label><input id="mf-title-ar" value="${d?.titleAr||''}" placeholder="ريلز سوشيال ميديا"></div>
+    <div class="mf"><label>الوصف (EN)</label><textarea id="mf-desc-en" dir="ltr">${d?.descEn||d?.description||''}</textarea></div>
+    <div class="mf"><label>الوصف (AR)</label><textarea id="mf-desc-ar">${d?.descAr||''}</textarea></div>
+    <div class="mf"><label>الأيقونة (lucide name or emoji)</label><input id="mf-icon" dir="ltr" value="${d?.icon||''}" placeholder="smartphone أو 📱"></div>
+    <div class="mf"><label>الوسوم (مفصولة بفاصلة)</label><input id="mf-tags" dir="ltr" value="${(d?.tags||[]).join(', ')}" placeholder="9:16, Captions, ..."></div>
+  `;
+}
+
+function reviewForm(d) {
+  return `
+    <div class="mf"><label>الاسم *</label><input id="mf-name" value="${d?.name||''}" placeholder="اسم العميل"></div>
+    <div class="mf"><label>الوظيفة / الشركة</label><input id="mf-role" value="${d?.role||''}" placeholder="Founder · NovaBrand"></div>
+    <div class="mf"><label>التقييم (1-5)</label>
+      <select id="mf-rating">${[5,4,3,2,1].map(n=>`<option value="${n}" ${(d?.rating||5)==n?'selected':''}>${'★'.repeat(n)}</option>`).join('')}</select>
+    </div>
+    <div class="mf"><label>نص التقييم (EN)</label><textarea id="mf-text-en" dir="ltr">${d?.textEn||d?.text||''}</textarea></div>
+    <div class="mf"><label>نص التقييم (AR)</label><textarea id="mf-text-ar">${d?.textAr||''}</textarea></div>
+    <div class="mf"><label>المشروع المرتبط</label><input id="mf-project" value="${d?.project||''}" placeholder="The Makers — Documentary"></div>
+  `;
+}
+
+window.closeOverlay = e => { if (e.target===document.getElementById('overlay')) closeModal(); };
+window.closeModal = () => document.getElementById('overlay').classList.remove('open');
+
+window.saveModal = async () => {
+  const btn = document.getElementById('modal-save');
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    if (_mType==='work') await saveWork();
+    else if (_mType==='service') await saveService();
+    else if (_mType==='review') await saveReview();
+    closeModal();
+  } finally { btn.textContent='حفظ'; btn.disabled=false; }
+};
+
+async function saveWork() {
+  const title = document.getElementById('mf-title').value.trim();
+  if (!title) { toast('أدخل عنوان العمل','err'); throw ''; }
+  const thumbUrl = _uploadedUrl
+    || document.getElementById('mf-thumb-url').value.trim()
+    || (_mId && worksCache.find(w=>w.id===_mId)?.thumbUrl) || '';
+  const data = {
+    title,
+    description: document.getElementById('mf-desc').value.trim(),
+    category: document.getElementById('mf-cat').value,
+    platform: document.getElementById('mf-platform').value,
+    videoUrl: document.getElementById('mf-video').value.trim(),
+    vimeoId: document.getElementById('mf-vimeo').value.trim(),
+    thumbUrl,
+    updatedAt: serverTimestamp(),
+  };
+  if (_mId) await updateDoc(doc(db,'works',_mId), data);
+  else await addDoc(collection(db,'works'), {...data, createdAt:serverTimestamp()});
+  toast('✅ تم حفظ العمل');
+  await loadWorks();
+}
+
+async function saveService() {
+  const titleEn = document.getElementById('mf-title-en').value.trim();
+  if (!titleEn) { toast('أدخل عنوان الخدمة','err'); throw ''; }
+  const data = {
+    titleEn,
+    titleAr: document.getElementById('mf-title-ar').value.trim(),
+    descEn: document.getElementById('mf-desc-en').value.trim(),
+    descAr: document.getElementById('mf-desc-ar').value.trim(),
+    icon: document.getElementById('mf-icon').value.trim(),
+    tags: document.getElementById('mf-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    updatedAt: serverTimestamp(),
+  };
+  if (_mId) await updateDoc(doc(db,'services',_mId), data);
+  else await addDoc(collection(db,'services'), {...data, createdAt:serverTimestamp()});
+  toast('✅ تم حفظ الخدمة');
+  await loadServices();
+}
+
+async function saveReview() {
+  const name = document.getElementById('mf-name').value.trim();
+  if (!name) { toast('أدخل اسم العميل','err'); throw ''; }
+  const data = {
+    name,
+    role: document.getElementById('mf-role').value.trim(),
+    rating: +document.getElementById('mf-rating').value,
+    textEn: document.getElementById('mf-text-en').value.trim(),
+    textAr: document.getElementById('mf-text-ar').value.trim(),
+    project: document.getElementById('mf-project').value.trim(),
+    updatedAt: serverTimestamp(),
+  };
+  if (_mId) await updateDoc(doc(db,'reviews',_mId), data);
+  else await addDoc(collection(db,'reviews'), {...data, createdAt:serverTimestamp()});
+  toast('✅ تم حفظ التقييم');
+  await loadReviews();
+}
+
+/* ══ EMPTY STATE ══ */
+function emptyState(msg, icon='inbox') {
+  const icons = {
+    film:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+    zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+    star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    'message-square':'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    inbox:'<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  };
+  return `<div class="empty">
+    <svg viewBox="0 0 24 24">${icons[icon]||icons.inbox}</svg>
+    <p>${msg}</p>
+  </div>`;
+}
+
+/* ══ PWA ══ */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ══ INIT LUCIDE ══ */
+lucide.createIcons();
+</script>
+</body>
+</html>

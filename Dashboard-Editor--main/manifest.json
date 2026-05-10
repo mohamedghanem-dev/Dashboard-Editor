@@ -1,0 +1,17 @@
+{
+  "name": "Nexus Studio Dashboard",
+  "short_name": "Nexus Dash",
+  "description": "Mohamed Ghanem — Nexus Studio Control Panel",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["productivity", "utilities"]
+}
