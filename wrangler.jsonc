@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dashboard-editor",
+  "compatibility_date": "2026-05-12",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "Dashboard-Editor--main"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
